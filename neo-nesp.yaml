@@ -2,13 +2,14 @@ substitutions:
   friendly_name: 'NESP'
   hostname: 'neo-nesp'
   device_name: 'neo_nesp'
-  device_description: 'WT32S3-21S ZX2D10GE01R-V4848 rotary switch screen'
-  ip: 10.0.80.75
+  device_description: 'ili9844 with Rotary encoder'
 
   # Home Assistant entities you want to control with nESP
-  climate_entity: climate.climate_control
-  zone_1_entity: cover.zone_1_downstairs
-  zone_2_entity: cover.zone_2_upstairs
+  zona_bagno_entity: climate.termostato_bagno
+  zona_notte_entity: climate.zona_notte
+  clima_e_entity: climate.502cc6b4b340
+  clima_i_entity: climate.502cc6ade93f
+
 
   # Home Assistant weather/info entities
   weather_entity: weather.bom_melbourne
