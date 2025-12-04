@@ -17,20 +17,13 @@ substitutions:
 #  weather_high_entity: #sensor.bom_melbourne_temp_max_0
 #  weather_low_entity: #sensor.bom_melbourne_temp_min_0
 #  weather_rain_chance_entity: #sensor.bom_melbourne_rain_chance_0
-#  zone_1_temperature_entity: #sensor.xiaomi_temp_1_temperature
+#  zone_1_temperature_entity: #senso
+qr.xiaomi_temp_1_temperature
 #  zone_1_humidity_entity: #sensor.xiaomi_temp_1_humidity
 #  zone_2_temperature_entity: #sensor.xiaomi_temp_2_temperature
 #  zone_2_humidity_entity: #sensor.xiaomi_temp_2_humidity
 
 
-external_components:
-  - source: github://pr#7472
-    components: [ lvgl ]
-  - source:
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: dev
-    components: [ st7701s ]
 
 esphome:
   name: ${hostname}
@@ -40,23 +33,12 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
     board_build.arduino.memory_type: qio_opi
-  on_boot:
-    - light.turn_on:
-        id: backlight
-        brightness: 0.7
+
 esp32:
-  board: esp32-s3-devkitc-1
-  flash_size: 16MB
+  board: esp32-dev
   framework:
     type: esp-idf
-    version: 5.3.1
-    platform_version: 6.8.1
-    sdkconfig_options:
-      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
-      CONFIG_ESP32S3_DATA_CACHE_64KB: y
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
+ 
 psram:
   mode: octal
   speed: 80MHz
@@ -66,40 +48,8 @@ debug:
 
 <<: !include _common.yaml
 
-output:
-  ### DISPLAY BACKLIGHT
-  - platform: ledc
-    id: display_led
-    pin: 38
-    zero_means_zero: true
-
-light:
-  - platform: monochromatic
-    id: backlight
-    output: display_led
-    name: Backlight
-    icon: mdi:brightness-percent
-    default_transition_length: 500ms
-    restore_mode: ALWAYS_ON
-
-  ### RGB RING LIGHT
-  - platform: esp32_rmt_led_strip
-    name: RGB LED
-    id: rgb_ring
-    pin: 4
-    num_leds: 13
-    rmt_channel: 0
-    rgb_order: GRB
-    chipset: WS2812
 
 switch:
-  ### VIBRATION MOTOR
-  - platform: gpio
-    id: vibration
-    name: Vibration Motor
-    icon: mdi:vibrate
-    internal: true
-    pin: 7
 
   ### DISPLAY ANTI BURN-IN
   - platform: template
@@ -110,7 +60,7 @@ switch:
     internal: true
     turn_on_action:
       - logger.log: "Starting Antiburn"
-      - light.turn_off: backlight
+
       - if:
           condition: lvgl.is_paused
           then:
@@ -128,7 +78,6 @@ switch:
             - lvgl.widget.redraw:
             - delay: 1s
             - lvgl.pause:
-      - light.turn_on: backlight
 
 time:
   - platform: homeassistant
@@ -149,22 +98,20 @@ time:
           - switch.turn_off: switch_antiburn
 
 binary_sensor:
-  ### CENTRE PUSH BUTTON
+  ### ENCODER BUTTON
   - platform: gpio
     name: Button
     id: push_button
     icon: mdi:circle-outline
     internal: true
     pin:
-      number: 3
-      mode: INPUT
-      inverted: true
+      number: 23
+      mode:
+        input: true
+        inverted: true
+        pullup: true
       ignore_strapping_warning: true
     on_press: 
-      # - script.execute:
-      #     id: vibrate
-      #     length_ms: 10
-      - light.turn_on: backlight
       - if:
           condition: lvgl.is_paused
           then:
@@ -197,15 +144,14 @@ sensor:
     icon: mdi:cached
     internal: true
     pin_a:
-      number: 6
+      number: 22
       inverted: true
       mode: INPUT
     pin_b:
-      number: 5
+      number: 25
       inverted: true
       mode: INPUT
     on_value:
-      - light.turn_on: backlight
       - if:
           condition:
             # turn ON when when on main page and OFF
